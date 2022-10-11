@@ -30,14 +30,3 @@ public class WeatherForecastController : ControllerBase
         .ToArray();
     }
 }
-
-[ApiController]
-[Route("[controller]")]
-public class CalculatorController : ControllerBase
-{
-    [HttpGet]
-    public int Get()
-    {
-        return 42;
-    }
-}
