@@ -1,0 +1,25 @@
+version: "3.9"
+services:
+  addressbookservice:
+    build: ./src/AddressBookService
+    depends_on:
+      - mssql
+    ports:
+      - "${AB_SERVICE_PORT:?err}:80"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=${ASP_ENV:?err}
+      - ConnectionStrings__Default=${MSSQL_CONNECTION:?err}
+      - DatabaseSetup=${AB_DATABASE_SETUP:?err}
+      
+  mssql:
+    image: mcr.microsoft.com/mssql/server:2019-latest
+    ports:
+      - ${MSSQL_PORT:?err}:1433
+    volumes:
+      - ./.ctn/mssql/data:/var/opt/mssql/data
+      - ./.ctn/mssql/log:/var/opt/mssql/log
+      - ./.ctn/mssql/secrets:/var/opt/mssql/secrets
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=${MSSQL_SAPW:?err}
+      - MSSQL_PID=Express

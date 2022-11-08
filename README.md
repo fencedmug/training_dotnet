@@ -1,1 +1,3 @@
-# training_dotnet
+# Projects in dotnet
+
+For learning dotnet
