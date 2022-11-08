@@ -28,7 +28,7 @@ public class AddressRepository : IAddressRepository
                     user.Addresses = user.Addresses == null ? new List<Address>() : user.Addresses;
                     user.Addresses.Add(addr);
                     return user;
-                }, splitOn: "UserId");
+                }, splitOn: "AddressId");
         
         return results;
     }
