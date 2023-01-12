@@ -2,4 +2,4 @@
 
 
 DemoValidations.Run();
-
+DemoFunctionals.Run();

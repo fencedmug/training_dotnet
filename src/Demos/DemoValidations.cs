@@ -36,7 +36,7 @@ public class Product
 
     [Display(Name = "Product Name")]
     [Required(ErrorMessage = "{0} cannot be empty.")]
-    public string Name { get; set; }
+    public string? Name { get; set; }
 
     [Display(Name = "|Product Origin|"), MaxLength(20)]
     public string Origin { get; set; } = "Very long name for origin origin origin origin";
@@ -104,10 +104,10 @@ public class ApiController
 public class IncomingRequest : BaseValidation
 {
     [EmailAddress]
-    public string EmailAddress { get; set; }
+    public string? EmailAddress { get; set; }
 
     [MinLength(1)]
-    public string PersonName { get; set; }
+    public string? PersonName { get; set; }
 
     [Range(0, 1000)]
     public int PersonID { get; set; }    
