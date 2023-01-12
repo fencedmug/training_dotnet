@@ -28,10 +28,12 @@ public static class SqlServer
         var results = dbConn.Query<int>(query).Single();
         if (results == 0)
         {
+            // using var transScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
             await InsertAsync(dbConn, "Michael", "Angelo", "Ancient Greek", "7979");
             await InsertAsync(dbConn, "Donatello", "Lovefeller", "Ancient World", "7979");
             await InsertAsync(dbConn, "Raphael", "Cristo", "Long Greek Street", "7979");
             await InsertAsync(dbConn, "Leonardo", "Cappucino", "Big House", "7979");
+            // transScope.Complete();
             log.LogDebug("Created SeedData");
         }
     }
