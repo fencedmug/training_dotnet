@@ -75,5 +75,12 @@ public class ExampleUsageRecords
         var toPrint2 = new ImmutableStructRecord { X = 12, Y = 23 };
         Console.WriteLine(toPrint1);
         Console.WriteLine(toPrint2);
+
+        // records have built-in deconstruct but only with records with positional parameters        
+        var (a, b) = toPrint1;
+        Console.WriteLine($"Values {a}, {b}");
+
+        // this won't work
+        //var (ab, bb) = toPrint2;
     }
 }
