@@ -90,7 +90,7 @@ public class ExampleUsagePatterns
 
                 // we cannot use discards here because compiler is smart enough
                 // to understand that Item is value type and above ValueType check
-                // already handles all possible cases
+                // will always match
             };
             Console.WriteLine(text);
         };
