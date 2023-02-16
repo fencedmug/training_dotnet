@@ -32,9 +32,12 @@ public class ExampleTaskbased
 
         sw.Restart();
 
-        t1 = DoMoreStuff("Ape", TimeSpan.FromSeconds(2), 3);
+        t1 = DoMoreStuff("Ape", TimeSpan.FromSeconds(2), 10);
         t2 = DoMoreStuff("Cat", TimeSpan.FromSeconds(3), 4);
         t3 = DoMoreStuff("Dog", TimeSpan.FromSeconds(4), 5);
+
+        // this delay will help show the tasks are already running
+        await Task.Delay(TimeSpan.FromSeconds(1));
         logTime();
 
         // if any tasks throw exceptions, we will need to inspect AggregateException
