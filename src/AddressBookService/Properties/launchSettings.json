@@ -17,8 +17,9 @@
       "applicationUrl": "https://localhost:7254;http://localhost:5212",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
-        "ConnectionStrings__Default": "your connection string",
-        "DatabaseSetup": "false"
+        "ConnectionStrings__sqlserver": "your connection string",
+        "ConnectionStrings__sqlite": "Data Source=Application.db;Cache=Shared",
+        "DatabaseType": "sqlite"
       }
     },
     "IIS Express": {

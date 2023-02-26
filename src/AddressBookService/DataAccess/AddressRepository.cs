@@ -7,22 +7,44 @@ using System.Transactions;
 
 public class AddressRepository : IAddressRepository
 {
-    private readonly IDbConnection _dbConn;
+    private readonly IDbConnectionProvider _dbConnProv;
 
-    public AddressRepository(string connectionString)
+    private readonly string _getUsersQuery =
+        "SELECT * FROM Users " +
+        "LEFT JOIN Addresses " +
+        "ON Users.UserId = Addresses.UserId";
+
+    private readonly string _getAddrsQuery =
+        "SELECT * FROM Addresses";
+
+    private readonly string _getAddrByUserIdQuery =
+        "SELECT * FROM Addresses where UserId = @UserId";
+
+    private readonly string _addUserQuery = 
+        "INSERT INTO Users (FirstName, LastName) VALUES (@FirstName, @LastName); ";
+
+    private readonly string _addAddrQuery = 
+        "INSERT INTO Addresses (UserId, Street, PostalCode, Country) " +
+        "VALUES (@UserId, @Street, @PostalCode, @Country);";
+
+    public AddressRepository(IDbConnectionProvider provider)
     {
-        _dbConn = new SqlConnection(connectionString);
+        _dbConnProv = provider;
+
+        _addUserQuery = _addUserQuery + _dbConnProv.DatabaseType switch
+        {
+            // different ways to get primary key back after insert
+            IDbConnectionProvider.SqlServer => "SELECT CAST(SCOPE_IDENTITY() as INT)",
+            IDbConnectionProvider.Sqlite => "SELECT last_insert_rowid()",
+            _ => throw new NotSupportedException("Database type not supported")
+        };
     }
 
     public async Task<IEnumerable<User>> GetUsersAsync()
     {
-        var query = 
-            "SELECT * FROM Users " +
-            "LEFT JOIN Addresses " +
-            "ON Users.UserId = Addresses.UserId";
-
-        var results = await _dbConn
-            .QueryAsync<User, Address, User>(query, 
+        using var dbConn = _dbConnProv.GetDbConnection();
+        var results = await dbConn
+            .QueryAsync<User, Address, User>(_getUsersQuery, 
                 (user, addr) => 
                 {
                     user.Addresses = user.Addresses == null ? new List<Address>() : user.Addresses;
@@ -33,20 +55,25 @@ public class AddressRepository : IAddressRepository
         return results;
     }
 
+    public async Task<IEnumerable<Address>> GetAddressesAsync()
+    {
+        using var dbConn = _dbConnProv.GetDbConnection();
+        return await dbConn.QueryAsync<Address>(_getAddrsQuery);
+    }
+
     public async Task<IEnumerable<Address>> GetAddressAsync(int userId)
     {
-        return await _dbConn.QueryAsync<Address>("SELECT * FROM Addresses where UserId = @UserId", new { UserId = userId });
+        using var dbConn = _dbConnProv.GetDbConnection();
+        return await dbConn.QueryAsync<Address>(_getAddrByUserIdQuery, new { UserId = userId });
     }
 
     public async Task<int> AddUserAsync(User user)
     {
+        // todo: have to find out if this works with sqlite
         using var transScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
 
-        var query = 
-            "INSERT Users (FirstName, LastName) VALUES (@FirstName, @LastName); " + 
-            "SELECT CAST(SCOPE_IDENTITY() as INT)";
-        
-        var queryResult = await _dbConn.QueryAsync<int>(query, user);
+        using var dbConn = _dbConnProv.GetDbConnection();
+        var queryResult = await dbConn.QueryAsync<int>(_addUserQuery, user);
         var userId = queryResult.Single();
 
         if (user.Addresses?.Count > 0)
@@ -54,7 +81,7 @@ public class AddressRepository : IAddressRepository
             foreach (var addr in user.Addresses)
             {
                 addr.UserId = userId;
-                await AddAddressAsync(addr);
+                await dbConn.QueryAsync(_addAddrQuery, addr);
             }
         }
 
@@ -64,10 +91,7 @@ public class AddressRepository : IAddressRepository
 
     public async Task AddAddressAsync(Address addr)
     {
-        var query =
-            "INSERT Addresses (UserId, Street, PostalCode, Country) " +
-            "VALUES (@UserId, @Street, @PostalCode, @Country);";
-
-        await _dbConn.QueryAsync(query, addr);
+        using var dbConn = _dbConnProv.GetDbConnection();
+        await dbConn.QueryAsync(_addAddrQuery, addr);
     }
 }

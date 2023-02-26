@@ -2,27 +2,37 @@ using System.Data;
 using AddressBookService.AddressBook;
 using Dapper;
 using Microsoft.Data.SqlClient;
+using SQLitePCL;
 
 namespace AddressBookService.DataAccess;
 
-public static class SqlServer
+public class SqlServerSetup : IDatabaseSetup
 {
     private const string CreateDatabaseSql = "CreateDatabase.sql";
     private const string CreateTablesSql = "CreateTables.sql";
     private static readonly TimeSpan InitialWaitTime = TimeSpan.FromSeconds(10);
 
-    public static async Task Initialize(string connectionString, ILogger log)
+    private readonly ILogger<SqlServerSetup> _log;
+    private readonly IDbConnectionProvider _dbConnProv;
+
+    public SqlServerSetup(ILogger<SqlServerSetup> log, IDbConnectionProvider dbProv)
     {
-        log.LogDebug($"Wait of {InitialWaitTime.TotalSeconds}s before running scripts");
+        _log = log;
+        _dbConnProv = dbProv;
+    }
+
+    public async Task InitializeAsync()
+    {
+        _log.LogDebug($"Wait of {InitialWaitTime.TotalSeconds}s before running scripts");
         await Task.Delay(InitialWaitTime);
 
-        await CreateDatabaseAsync(connectionString);
-        log.LogDebug($"Executed {CreateDatabaseSql}");
+        await CreateDatabaseAsync(_dbConnProv.ConnectionString);
+        _log.LogDebug($"Executed {CreateDatabaseSql}");
         
         var createTbSql = File.ReadAllText(Path.Combine(Environment.CurrentDirectory, "SqlScripts", CreateTablesSql));
-        var dbConn = new SqlConnection(connectionString);
+        var dbConn = new SqlConnection(_dbConnProv.ConnectionString);
         dbConn.Execute(createTbSql);   
-        log.LogDebug($"Executed {CreateTablesSql}");
+        _log.LogDebug($"Executed {CreateTablesSql}");
 
         var query = "SELECT COUNT(UserId) from Users";
         var results = dbConn.Query<int>(query).Single();
@@ -34,7 +44,7 @@ public static class SqlServer
             await InsertAsync(dbConn, "Raphael", "Cristo", "Long Greek Street", "7979");
             await InsertAsync(dbConn, "Leonardo", "Cappucino", "Big House", "7979");
             // transScope.Complete();
-            log.LogDebug("Created SeedData");
+            _log.LogDebug("Created SeedData");
         }
     }
 

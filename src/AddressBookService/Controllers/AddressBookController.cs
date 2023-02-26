@@ -24,6 +24,13 @@ public class AddressBookController : ControllerBase
         return users;
     }
 
+    [HttpGet("GetAddresses")]
+    public async Task<IEnumerable<Address>> GetAddressesAsync()
+    {
+        var addresses = await _repository.GetAddressesAsync();
+        return addresses;
+    }
+
     [HttpGet("GetUserAddresses")]
     public async Task<IEnumerable<Address>> GetUserAddressesAsync(int userId)
     {

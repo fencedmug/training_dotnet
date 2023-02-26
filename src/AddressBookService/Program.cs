@@ -9,20 +9,32 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Configuration.AddEnvironmentVariables();
 
-var conn = builder.Configuration.GetConnectionString("Default");
-builder.Services.AddScoped<IAddressRepository, AddressRepository>(sp => new AddressRepository(conn));
+var dbflag = builder.Configuration["DatabaseType"];
+var conn = builder.Configuration.GetConnectionString(dbflag);
+
+if (dbflag == IDbConnectionProvider.SqlServer)
+{
+    builder.Services.AddScoped<IDbConnectionProvider, SqlServerDbConnectionProvider>(sp => new SqlServerDbConnectionProvider(conn));
+    builder.Services.AddScoped<IDatabaseSetup, SqlServerSetup>();
+}
+else if (dbflag == IDbConnectionProvider.Sqlite)
+{
+    builder.Services.AddScoped<IDbConnectionProvider, SqliteDbConnectionProvider>(sp => new SqliteDbConnectionProvider(conn));
+    builder.Services.AddScoped<IDatabaseSetup, SqliteSetup>();
+}
+else
+{
+    throw new InvalidOperationException("Need valid database type");
+}
+
+
+builder.Services.AddScoped<IAddressRepository, AddressRepository>();
 
 // above this line --> make sure to register all your interfaces + classes before
 var app = builder.Build(); // ------------------------------------------------------------
 // below this line --> middleware registration + get services 
 
-
-var databaseSetup = bool.Parse(builder.Configuration["DatabaseSetup"]);
-if (databaseSetup)
-{
-    var logger = app.Services.GetRequiredService<ILoggerFactory>().CreateLogger(nameof(SqlServer));
-    await SqlServer.Initialize(conn, logger);
-}
+await app.SetupDatabaseAsync();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
