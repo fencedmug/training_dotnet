@@ -4,7 +4,7 @@
 
 Project purpose is to demonstrate use of Dapper and MSSQL in a docker container.
 MSSQL volumes are mounted into .ctn folder (added to .gitignore).
-When running service as standalone container, remember to add database connection string to appsettings.json or 
+When running service as standalone container, remember to add database connection string to appsettings.json or environment variables.
 
 ## Docker commands
 
@@ -30,4 +30,4 @@ MSSQL_PORT=1433
 MSSQL_SAPW=<db password>
 ```
 
-Place this .env in same folder as dc-addr.yml (root folder)
+Place this .env in same folder as docker-compose.yml (root folder)
