@@ -23,13 +23,15 @@ public static class Queries_Select
         // the following LINQ will not attempt to establish
         // connection to database defined in connection string
 
-        query = ctx.Items.Where(item => item.Id > 10);
+        var itemId = 10;
+        query = ctx.Items.Where(item => item.Id > itemId);
         Consolex.WriteLine(1, query);
 
-        query = ctx.Items.Where(item => item.Name.ToUpper().Contains("HELLO WORLD"));
+        var nameToMatch = "HELL WORLD";
+        query = ctx.Items.Where(item => item.Name.ToUpper().Contains(nameToMatch));
         Consolex.WriteLine(2, query);
 
-        query = ctx.Items.Where(item => item.Created < DateTime.Now && item.Id == 300);
+        query = ctx.Items.Where(item => item.Created < DateTime.Now && item.Id == itemId);
         Consolex.WriteLine(3, query);
 
         // break up Where clauses -> doesn't seem to affect SQL generated
